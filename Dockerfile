@@ -28,8 +28,20 @@ COPY config/php.ini /usr/local/etc/php/
 RUN git clone https://github.com/emoncms/emoncms.git /var/www/html
 RUN git clone https://github.com/emoncms/dashboard.git /var/www/html/Modules/dashboard
 RUN git clone https://github.com/emoncms/graph.git /var/www/html/Modules/graph
+RUN git clone https://github.com/emoncms/app /var/www/html/Modules/app
+RUN git clone https://github.com/emoncms/sync.git /home/pi/sync
+#RUN git clone https://github.com/openenergymonitor/emonpi.git /home/pi/emonpi
 
+# Setup SYNC Module
+RUN chgrp www-data /home/pi
+RUN chgrp -R www-data /home/pi/sync
+RUN ln -s /var/www/html /var/www/emoncms
+RUN ln -s /home/pi/sync/sync-module /var/www/emoncms/Modules/sync
 
+# Setup emonpi
+#RUN chgrp -R www-data /home/pi/emonpi
+
+ 
 COPY docker.settings.php /var/www/html/settings.php
 
 # Create folders & set permissions for feed-engine data folders (mounted as docker volumes in docker-compose)
