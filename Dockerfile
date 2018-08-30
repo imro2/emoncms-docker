@@ -6,7 +6,9 @@ RUN apt-get update && apt-get install -y \
               libcurl4-gnutls-dev \
               libmcrypt-dev \
               libmosquitto-dev \
-              git-core
+              git-core \
+              cron \
+              supervisor
 
 # Enable PHP modules
 RUN docker-php-ext-install -j$(nproc) mysqli curl json mcrypt gettext
@@ -44,6 +46,11 @@ RUN chown www-data:root /var/lib/phptimeseries
 RUN touch /var/log/emoncms.log
 RUN chmod 666 /var/log/emoncms.log
 
+RUN echo "* * * * * supervisorctl start helloworld" | crontab -
+#RUN (crontab -l; echo "* * * * * supervisorctl start secondtask") 2>&1 crontab -
+
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+CMD ["/usr/bin/supervisord"]
 
 # TODO
 # Add Pecl :
