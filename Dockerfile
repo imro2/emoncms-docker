@@ -8,7 +8,8 @@ RUN apt-get update && apt-get install -y \
               libmosquitto-dev \
               git-core \
               cron \
-              supervisor
+              supervisor \
+              redis-tools
 
 # Enable PHP modules
 RUN docker-php-ext-install -j$(nproc) mysqli curl json mcrypt gettext
@@ -32,17 +33,23 @@ RUN git clone https://github.com/emoncms/dashboard.git /var/www/html/Modules/das
 RUN git clone https://github.com/emoncms/graph.git /var/www/html/Modules/graph
 RUN git clone https://github.com/emoncms/app /var/www/html/Modules/app
 RUN git clone https://github.com/emoncms/sync.git /home/pi/sync
-#RUN git clone https://github.com/openenergymonitor/emonpi.git /home/pi/emonpi
 
 # Setup SYNC Module
 RUN chgrp www-data /home/pi
 RUN chgrp -R www-data /home/pi/sync
 RUN ln -s /var/www/html /var/www/emoncms
 RUN ln -s /home/pi/sync/sync-module /var/www/emoncms/Modules/sync
+COPY scripts/emoncms-sync.sh /home/pi/sync/emoncms-sync.sh
+RUN chmod +x /home/pi/sync/emoncms-sync.sh
 
-# Setup emonpi
-#RUN chgrp -R www-data /home/pi/emonpi
-
+# Setup emonpi/service-runner
+COPY scripts/service-runner /home/pi/emonpi/service-runner
+RUN chmod +x /home/pi/emonpi/service-runner
+RUN chgrp -R www-data /home/pi/emonpi
+RUN mkdir /home/pi/data
+RUN chgrp www-data /home/pi/data
+RUN touch /home/pi/data/emoncms-sync.log
+RUN chmod 666 /home/pi/data/emoncms-sync.log
  
 COPY docker.settings.php /var/www/html/settings.php
 
@@ -58,7 +65,7 @@ RUN chown www-data:root /var/lib/phptimeseries
 RUN touch /var/log/emoncms.log
 RUN chmod 666 /var/log/emoncms.log
 
-RUN echo "* * * * * supervisorctl start helloworld" | crontab -
+RUN echo "* * * * * supervisorctl start service-runner" | crontab -
 #RUN (crontab -l; echo "* * * * * supervisorctl start secondtask") 2>&1 crontab -
 
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
