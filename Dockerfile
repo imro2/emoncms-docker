@@ -7,7 +7,6 @@ RUN apt-get update && apt-get install -y \
               libmcrypt-dev \
               libmosquitto-dev \
               git-core \
-              cron \
               supervisor \
               redis-tools
 
@@ -64,9 +63,6 @@ RUN chown www-data:root /var/lib/phptimeseries
 # Create Emoncms logfile
 RUN touch /var/log/emoncms.log
 RUN chmod 666 /var/log/emoncms.log
-
-RUN echo "* * * * * supervisorctl start service-runner" | crontab -
-#RUN (crontab -l; echo "* * * * * supervisorctl start secondtask") 2>&1 crontab -
 
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 CMD ["/usr/bin/supervisord"]
