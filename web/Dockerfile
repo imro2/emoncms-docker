@@ -44,7 +44,25 @@ RUN git clone https://github.com/emoncms/dashboard.git /var/www/emoncms/Modules/
 RUN git clone https://github.com/emoncms/graph.git /var/www/emoncms/Modules/graph
 RUN git clone https://github.com/emoncms/app.git /var/www/emoncms/Modules/app
 RUN git clone https://github.com/emoncms/device.git /var/www/emoncms/Modules/device
+RUN git clone https://github.com/emoncms/sync.git /home/pi/sync
 
+# Setup SYNC Module
+RUN chgrp www-data /home/pi
+RUN chgrp -R www-data /home/pi/sync
+RUN ln -s /var/www/html /var/www/emoncms
+RUN ln -s /home/pi/sync/sync-module /var/www/emoncms/Modules/sync
+COPY scripts/emoncms-sync.sh /home/pi/sync/emoncms-sync.sh
+RUN chmod +x /home/pi/sync/emoncms-sync.sh
+
+# Setup emonpi/service-runner
+COPY scripts/service-runner /home/pi/emonpi/service-runner
+RUN chmod +x /home/pi/emonpi/service-runner
+RUN chgrp -R www-data /home/pi/emonpi
+RUN mkdir /home/pi/data
+RUN chgrp www-data /home/pi/data
+RUN touch /home/pi/data/emoncms-sync.log
+RUN chmod 666 /home/pi/data/emoncms-sync.log
+ 
 COPY docker.settings.ini /var/www/emoncms/settings.ini
 
 # Create folders & set permissions for feed-engine data folders (mounted as docker volumes in docker-compose)
